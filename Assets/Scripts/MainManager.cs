@@ -16,13 +16,9 @@ public class MainManager : MonoBehaviour
     public GameObject GameOverText;
     public Text HighScoreText;
 
-    public TMP_InputField NameInputField;
-    public GameObject NameInputPanel;
-
     private bool m_Started = false;
     private int m_Points;
     public int highScores = 0;
-    public string highScoreName = "Player";
     
     private bool m_GameOver = false;
 
@@ -82,10 +78,6 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
-        if (m_Points > highScores)
-        {
-            NameInputPanel.SetActive(true);
-        }
         SaveScore();
     }
 
@@ -101,9 +93,9 @@ public class MainManager : MonoBehaviour
         SaveHighScore highScore = new SaveHighScore();
         if (m_Points > highScores)
         {
-            highScore.name = "Player";
+            highScore.name = MenuManager.Instance.username;
             highScore.highScore = m_Points;
-            HighScoreText.text = $"Best Score : {highScoreName} : {m_Points}";
+            HighScoreText.text = $"Best Score : {highScore.name} : {m_Points}";
             string json = JsonUtility.ToJson(highScore);
 
             File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
@@ -120,17 +112,9 @@ public class MainManager : MonoBehaviour
             HighScoreText.gameObject.SetActive(true);
             HighScoreText.text = $"Best Score : {highScore.name} : {highScore.highScore}";
             highScores = highScore.highScore;
-            highScoreName = highScore.name;
         } else
         {
             HighScoreText.text = "Best Score : 0";
         }
-    }
-
-    public void SubmitName()
-    {
-        highScoreName = NameInputField.text;
-        NameInputPanel.SetActive(false);
-        SaveScore();
     }
 }
