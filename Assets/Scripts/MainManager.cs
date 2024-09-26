@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -12,9 +14,15 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
-    
+    public Text HighScoreText;
+
+    public TMP_InputField NameInputField;
+    public GameObject NameInputPanel;
+
     private bool m_Started = false;
     private int m_Points;
+    public int highScores = 0;
+    public string highScoreName = "Player";
     
     private bool m_GameOver = false;
 
@@ -36,6 +44,8 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        LoadScore();
     }
 
     private void Update()
@@ -72,5 +82,55 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        if (m_Points > highScores)
+        {
+            NameInputPanel.SetActive(true);
+        }
+        SaveScore();
+    }
+
+    [System.Serializable]
+    class SaveHighScore 
+    {
+        public int highScore;
+        public string name;
+    }
+
+    public void SaveScore()
+    {
+        SaveHighScore highScore = new SaveHighScore();
+        if (m_Points > highScores)
+        {
+            highScore.name = "Player";
+            highScore.highScore = m_Points;
+            HighScoreText.text = $"Best Score : {highScoreName} : {m_Points}";
+            string json = JsonUtility.ToJson(highScore);
+
+            File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+        }
+    }
+
+    public void LoadScore()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveHighScore highScore = JsonUtility.FromJson<SaveHighScore>(json);
+            HighScoreText.gameObject.SetActive(true);
+            HighScoreText.text = $"Best Score : {highScore.name} : {highScore.highScore}";
+            highScores = highScore.highScore;
+            highScoreName = highScore.name;
+        } else
+        {
+            HighScoreText.text = "Best Score : 0";
+        }
+    }
+
+    public void SubmitName()
+    {
+        highScoreName = NameInputField.text;
+        NameInputPanel.SetActive(false);
+        SaveScore();
     }
 }
